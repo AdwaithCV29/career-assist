@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Career Assist</title>
+</head>
+<body>
+    <div class="container">
+    <style>
+body{
+    font-family: Arial, sans-serif;
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    min-height: 100vh;
+}
+.container{
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0px 4px 20px rgba(0,0,0,0.2);
+    width: 80%;
+    margin: auto;
+}
+
+h1{
+    color: #333;
+    text-align: center;
+    font-size:42px;
+}
+#counter{
+    text-align: center;
+    font-weight: bold;
+    margin: 15px 0;
+}
+h3{
+    color:#0078d7;
+    text-align: center;
+}
+input{
+    width: 75%;
+    padding: 10px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: 0.3s;
+}
+input:focus{
+    outline: none;
+    box-shadow: 0 0 10px rgba(0,120,215,0.2);
+}
+
+button{
+    padding: 10px 15px;
+    background-color: #0078d7;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover{
+    background-color: #005ecb;
+    transform: scale(1.05);
+}
+
+#answer{
+    margin-top: 20px;
+    padding: 15px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    min-height: 60px;
+}
+p{
+    color: #666;
+    margin-bottom: 20px;
+    text-align: center;
+}
+.dark-mode {
+    background-color: #222;
+    color: white;
+}
+.dark-mode input {
+    background-color: #555;
+    color: white;
+}
+.dark-mode #answer {
+    background-color: #444;
+    color: white;
+}
+.dark-mode h1 {
+    color: white;
+}
+.dark-mode p {
+    color: #ddd;
+}
+.dark-mode .container{
+    background-color: #333;
+}
+</style>
+
+    <h1>🎓Career Assist</h1>
+    <p>Get AI-powered career guidance and suggestions</p>
+
+    <input type="text" id="question" placeholder="Ask your career question">
+    <br><br>
+
+    <button onclick="askAI()">Ask AI</button>
+    <button onclick="clearAll()">Clear Answer</button>
+    <button onclick="toggleMode()">🌙 Dark Mode</button>
+    <button onclick="downloadHistory()">Download History</button>
+    <button onclick="clearHistory()">Clear History</button>
+    <button onclick="copyAnswer()">Copy Answer</button>
+    <p id="counter">Questions asked: 0</p>
+    <h3>Recent Questions</h3>
+    <ul id="history"></ul>
+    <p id="answer"></p>
+
+    <script>
+        let count = 0;
+        let history = [];
+        async function askAI() {
+
+            let question =
+            document.getElementById("question").value;
+            if(question.trim() === "") {
+                alert("Please enter a question.");
+                return;
+            }
+            count++;
+            let now = new Date();
+            let time = now.toLocaleString("en-IN", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: true
+        });
+            history.push(question + " (" + time + ")");
+            document.getElementById("history").innerHTML = history.map(q => "<li>" + q + "</li>").join("");
+            document.getElementById("counter").innerText = "Questions asked: " + count;
+            let dots = 0;
+
+let loading = setInterval(() => {
+    dots = (dots + 1) % 4;
+    document.getElementById("answer").innerText =
+        "Thinking" + ".".repeat(dots);
+}, 500);
+
+            let response = await fetch("/ask", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    question: question
+                })
+            });
+
+            let data = await response.json();
+            clearInterval(loading);
+
+            document.getElementById("answer").innerText =
+            data.answer;
+        }
+        function clearAll() {
+            document.getElementById("question").value = "";
+            document.getElementById("answer").innerHTML = "";
+        }
+        document.getElementById("question").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                askAI();
+            }
+        });
+        function toggleMode() {
+            document.body.classList.toggle("dark-mode");
+        }
+        function downloadHistory() {
+
+    let content = history.join("\n");
+
+    let blob = new Blob([content], {
+        type: "text/plain"
+    });
+
+    let a = document.createElement("a");
+
+    a.href = URL.createObjectURL(blob);
+
+    a.download = "career_history.txt";
+
+    a.click();
+}
+function clearHistory() {
+
+    history = [];
+
+    document.getElementById("history").innerHTML = "";
+
+    count = 0;
+    document.getElementById("counter").innerText = "Questions asked: 0";
+
+}
+function copyAnswer() {
+    let text = document.getElementById("answer").innerText;
+    navigator.clipboard.writeText(text);
+    alert("Answer copied!");
+}
+ </script>
+ <p style="text-align:center; margin-top:20px; color:gray;">
+    Career Assist © 2026
+</p>
+</div>
+</body>
+</html>
